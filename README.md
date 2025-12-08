@@ -181,3 +181,37 @@ You are free to choose the strategies and tools you prefer. Briefly describe you
    - A short overview of your solution
    - Any tradeoffs or assumptions you made
    - What you would improve or add if you had more time
+
+## How to run your solution
+
+---
+
+Please include clear instructions in this section so we can run your backend and frontend locally.
+
+At a minimum, document:
+
+1. **Prerequisites**
+   - Python version (e.g. 3.10+)
+   - Node.js version (e.g. 18+)
+   - Any other required tools (e.g. `pipenv`, `poetry`, `npm`, `pnpm`, `docker`, etc.)
+
+2. **Environment variables**
+   - List all required environment variables (for example: `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`, `AIRTABLE_TABLE_ID_OR_NAME`, API base URL, etc.)
+   - Explain how to set them (e.g. `.env` file in the backend folder, `.env.local` for the frontend, or another approach).
+
+3. **Backend setup & run**
+   - How to install dependencies (e.g. `pip install -r requirements.txt` or `poetry install`)
+   - How to start the backend server (e.g. `uvicorn app.main:app --reload --port 8000`)
+   - Which port it listens on and any relevant options
+
+4. **Frontend setup & run**
+   - How to install dependencies (e.g. `npm install` or `pnpm install`)
+   - How to configure the backend URL (e.g. `VITE_API_BASE_URL` or `REACT_APP_API_BASE_URL`)
+   - How to start the frontend dev server (e.g. `npm run dev` or `npm start`)
+   - Which URL to open in the browser
+
+5. **Running tests (if applicable)**
+   - How to run backend tests
+   - How to run frontend tests
+
+We should be able to follow the commands in this section to get both the backend and frontend running locally and access the dashboard in a browser.
