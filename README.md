@@ -181,10 +181,10 @@ You are free to choose the strategies and tools you prefer. Briefly describe you
    - A short overview of your solution
    - Any tradeoffs or assumptions you made
    - What you would improve or add if you had more time
+     
+---
 
 ## How to run your solution
-
----
 
 Please include clear instructions in this section so we can run your backend and frontend locally.
 
