@@ -10,10 +10,13 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=OrdersListResponse)
-async def list_orders():
+async def list_orders(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Number of items per page"),
+):
     """Endpoint to list all orders."""
     try:
-        return await order_service.get_orders_list()
+        return await order_service.get_orders_list(page=page, page_size=page_size)
     except Exception as e:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,

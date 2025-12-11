@@ -21,5 +21,5 @@ class Order(BaseModel):
 class OrdersListResponse(BaseModel):
     """Orders List Response Model."""
 
-    orders: List[Order]
-    total: int
+    data: List[Order]
+    meta: dict
