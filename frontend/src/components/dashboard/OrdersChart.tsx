@@ -31,6 +31,19 @@ export function OrdersChart() {
     return null;
   }
 
+  if (summary.data.last_30_days.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Orders Trend (Last 30 Days)</CardTitle>
+        </CardHeader>
+        <CardContent className="py-12 text-center text-gray-500">
+          No order data available for the last 30 days.
+        </CardContent>
+      </Card>
+    );
+  }
+
   const chartData = summary.data.last_30_days.map((item) => ({
     date: new Date(item.date).toLocaleDateString(undefined, {
       month: "2-digit",
