@@ -23,3 +23,19 @@ class OrdersListResponse(BaseModel):
 
     data: List[Order]
     meta: dict
+
+class OrderResponse(BaseModel):
+    """Order Response Model."""
+
+    data: Order
+
+class OrderUpdate(BaseModel):
+    """Order Update Model."""
+
+    status: Optional[str] = None
+    priority: Optional[str] = None
+
+class OrderUpdateResponse(BaseModel):
+    """Order Update Response Model."""
+
+    data: Order

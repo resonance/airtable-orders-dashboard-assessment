@@ -6,6 +6,7 @@ from app.config import settings
 from typing import List
 from app.schemas.order import Order
 from datetime import datetime
+from functools import partial
 
 class AirtableService:
     """Service for interacting with Airtable"""
@@ -20,8 +21,7 @@ class AirtableService:
 
     async def get_all_orders(self) -> List[Order]:
         """Fetch all orders from Airtable."""
-        loop = asyncio.get_event_loop()
-        records = await loop.run_in_executor(None, self.table.all)
+        records = await asyncio.to_thread(self.table.all)
 
         orders = []
 
@@ -39,5 +39,64 @@ class AirtableService:
                 )
             ))
         return orders
+
+    async def get_order_by_id(self, order_id: str) -> Order | None:
+        """Fetch a single order by its Airtable ID."""
+        record = await asyncio.to_thread(
+            self.table.first,
+            formula=f"{{Order ID}} = '{order_id}'"
+        )
+
+        if not record:
+            return None
+
+        fields = record.get("fields", {})
+        order = Order(
+            airtable_id=record.get("id"),
+            order_id=fields.get("Order ID", ""),
+            customer=fields.get("Customer Name", ""),
+            status=fields.get("Status", "Pending"),
+            priority=fields.get("Priority", "Medium"),
+            order_total=float(fields.get("Order Total", 0)),
+            created_at=datetime.fromisoformat(
+                fields.get("Created At", datetime.now().isoformat())
+            )
+        )
+
+        if not order:
+            return None
+
+        return order
+
+    async def update_order(
+        self,
+        airtable_id: str,
+        status: str | None = None,
+        priority: str | None = None,
+    ) -> Order:
+        """Update an order in Airtable."""
+        update_data = {}
+
+        if status:
+            update_data["Status"] = status
+        if priority:
+            update_data["Priority"] = priority
+
+
+        func = partial(self.table.update, airtable_id, update_data)
+        record = await asyncio.to_thread(func)
+
+        fields = record.get("fields", {})
+        return Order(
+            airtable_id=record.get("id"),
+            order_id=fields.get("Order ID", ""),
+            customer=fields.get("Customer Name", ""),
+            status=fields.get("Status", "Pending"),
+            priority=fields.get("Priority", "Medium"),
+            order_total=float(fields.get("Order Total", 0)),
+            created_at=datetime.fromisoformat(
+                fields.get("Created At", datetime.now().isoformat())
+            )
+        )
 
 airtable_service = AirtableService()

@@ -1,6 +1,9 @@
 """Business logic for managing orders."""
 
 from app.schemas.order import (
+    Order,
+    OrderResponse,
+    OrderUpdateResponse,
     OrdersListResponse,
 )
 from app.services.airtable_service import airtable_service
@@ -22,7 +25,6 @@ class OrderService:
         end = start + page_size
         page_orders = orders[start:end]
 
-
         return OrdersListResponse(
             data=page_orders,
             meta={
@@ -32,5 +34,31 @@ class OrderService:
                 "total_pages": total_pages,
             }
         )
+
+    async def get_order(self, order_id: str) -> OrderResponse:
+        """Retrieve a single order by its ID."""
+        order = await airtable_service.get_order_by_id(order_id)
+        return OrderResponse(data=order) if order else None
+
+    async def update_order(
+        self,
+        order_id: str,
+        status: str | None = None,
+        priority: str | None = None,
+    ) -> Order | None:
+        """Update an order."""
+        order = await airtable_service.get_order_by_id(order_id)
+
+        if not order:
+            raise ValueError("Order not found")
+
+        updated_order = await airtable_service.update_order(
+            airtable_id=order.airtable_id,
+            status=status,
+            priority=priority,
+        )
+
+        return OrderUpdateResponse(data=updated_order)
+
 
 order_service = OrderService()
