@@ -46,6 +46,7 @@ class OrdersService extends ApiService {
   async syncOrders() {
     return this.request<SyncResponse>({
       method: "POST",
+      path: "sync",
     });
   }
 }
