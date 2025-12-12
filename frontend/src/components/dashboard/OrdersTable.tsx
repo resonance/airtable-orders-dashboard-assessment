@@ -131,7 +131,7 @@ export function OrdersTable() {
             </Table>
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex items-center justify-between flex-wrap gap-2">
             <div className="text-sm text-gray-500">Page 1 of 21</div>
             <div className="flex gap-2">
               <Button
