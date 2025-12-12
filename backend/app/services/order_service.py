@@ -72,13 +72,7 @@ class OrderService:
 
     async def get_orders_summary(self):
         """Get summary statistics for orders in the last 30 days."""
-        all_orders = await airtable_service.get_all_orders()
-
-        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-        orders = [
-            order for order in all_orders
-            if order.created_at >= thirty_days_ago
-        ]
+        orders = await airtable_service.get_orders_by_date_range(days=30)
 
         total_orders = len(orders)
         total_revenue = sum(order.order_total for order in orders)
@@ -128,7 +122,7 @@ class OrderService:
             result.append(
                 DailySummary(
                     date=date_str,
-                    order_count=daily_counts[date_str],
+                    count=daily_counts[date_str],
                 )
             )
 

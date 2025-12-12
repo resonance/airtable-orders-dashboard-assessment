@@ -26,7 +26,7 @@ class Order(BaseModel):
 
     airtable_id: str
     order_id: str
-    customer: str = Field(..., alias="customer_name")
+    customer: str
     status: OrderStatus
     priority: OrderPriority
     order_total: float
