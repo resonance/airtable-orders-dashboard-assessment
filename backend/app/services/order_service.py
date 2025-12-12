@@ -11,6 +11,8 @@ from app.schemas.order import (
     DailySummary,
     AnalyticsData,
     OrderPriority,
+    SyncData,
+    SyncResponse,
 )
 from app.services.airtable_service import airtable_service
 from collections import defaultdict
@@ -133,6 +135,20 @@ class OrderService:
 
         return result
 
+    async def sync_orders(self) -> SyncResponse:
+        """Sync orders from Airtable and return sync summary."""
+        records_synced = await airtable_service.get_all_orders()
+        records_count = len(records_synced)
 
+        summary = await self.get_orders_summary()
+
+        return SyncResponse(
+            data=SyncData(
+                success=True,
+                message=f"Successfully synced {records_count} orders",
+                records_synced=records_count,
+                summary=summary.data,
+            )
+        )
 
 order_service = OrderService()

@@ -5,6 +5,7 @@ from app.schemas.order import (
     OrderUpdate,
     OrderResponse,
     OrdersSummaryResponse,
+    SyncResponse,
 )
 from app.services.order_service import order_service
 
@@ -36,6 +37,17 @@ async def get_orders_summary():
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             f"Error to fetch orders summary: {str(e)}",
+        )
+
+@router.post("/sync", response_model=SyncResponse)
+async def sync_orders():
+    """Endpoint to sync orders from Airtable."""
+    try:
+        return await order_service.sync_orders()
+    except Exception as e:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            f"Error to sync orders: {str(e)}",
         )
 
 

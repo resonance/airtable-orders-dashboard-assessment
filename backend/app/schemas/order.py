@@ -83,3 +83,17 @@ class OrdersSummaryResponse(BaseModel):
     """Orders Summary Response Model."""
 
     data: AnalyticsData
+
+
+class SyncData(BaseModel):
+    """Sync Data Model."""
+
+    success: bool
+    message: str
+    records_synced: int
+    summary: AnalyticsData
+
+class SyncResponse(BaseModel):
+    """Sync Response Model."""
+
+    data: SyncData
