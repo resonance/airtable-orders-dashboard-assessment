@@ -4,6 +4,7 @@ from app.schemas.order import (
     OrdersListResponse,
     OrderUpdate,
     OrderResponse,
+    OrdersSummaryResponse,
 )
 from app.services.order_service import order_service
 
@@ -25,6 +26,18 @@ async def list_orders(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             f"Error to fetch orders: {str(e)}",
         )
+
+@router.get("/summary", response_model=OrdersSummaryResponse)
+async def get_orders_summary():
+    """Endpoint to get orders summary."""
+    try:
+        return await order_service.get_orders_summary()
+    except Exception as e:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            f"Error to fetch orders summary: {str(e)}",
+        )
+
 
 @router.get("/{order_id}", response_model=OrderResponse)
 async def get_order(order_id: str):
