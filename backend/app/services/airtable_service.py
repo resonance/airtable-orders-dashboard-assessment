@@ -24,21 +24,41 @@ class AirtableService:
         records = await asyncio.to_thread(self.table.all)
 
         orders = []
-
         for record in records:
-            fields = record.get("fields", {})
-            orders.append(Order(
-                airtable_id=record.get("id"),
-                order_id=fields.get("Order ID", ""),
-                customer=fields.get("Customer Name", ""),
-                status=fields.get("Status", "Pending"),
-                priority=fields.get("Priority", "Medium"),
-                order_total=float(fields.get("Order Total", 0)),
-                created_at=datetime.fromisoformat(
-                    fields.get("Created At", datetime.now().isoformat())
-                )
-            ))
+            orders.append(self._record_to_order(record))
         return orders
+
+    def _record_to_order(self, record: dict) -> Order:
+        """Convert Airtable record to Order object."""
+        fields = record.get("fields", {})
+        return Order(
+            airtable_id=record.get("id"),
+            order_id=fields.get("Order ID", ""),
+            customer=fields.get("Customer Name", ""),
+            status=fields.get("Status", "Pending"),
+            priority=fields.get("Priority", "Medium"),
+            order_total=float(fields.get("Order Total", 0)),
+            created_at=datetime.fromisoformat(
+                fields.get("Created At", datetime.now().isoformat())
+            )
+        )
+
+    async def get_orders_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 100,
+    ) -> tuple[List[Order], int]:
+        """Fetch paginated orders from Airtable."""
+        offset_count = (page - 1) * page_size
+
+        all_records = await asyncio.to_thread(self.table.all)
+        total_count = len(all_records)
+
+        paginated_records = all_records[offset_count:offset_count + page_size]
+
+        orders = [self._record_to_order(record) for record in paginated_records]
+
+        return orders, total_count
 
     async def get_order_by_id(self, order_id: str) -> Order | None:
         """Fetch a single order by its Airtable ID."""

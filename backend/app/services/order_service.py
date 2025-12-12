@@ -27,17 +27,16 @@ class OrderService:
         page: int = 1,
         page_size: int = 100,
     ) -> OrdersListResponse:
-        """Retrieve the list of orders."""
-        orders = await airtable_service.get_all_orders()
+        """Retrieve the list of orders with pagination."""
+        orders, total = await airtable_service.get_orders_paginated(
+            page=page,
+            page_size=page_size
+        )
 
-        total = len(orders)
         total_pages = (total + page_size - 1)
-        start = (page - 1) * page_size
-        end = start + page_size
-        page_orders = orders[start:end]
 
         return OrdersListResponse(
-            data=page_orders,
+            data=orders,
             meta={
                 "page": page,
                 "page_size": page_size,
