@@ -1,7 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Package, ShoppingCart, TrendingUp } from "lucide-react";
+import { useOrderSummary } from "@/hooks/use-orders";
+import type { OrderStatus } from "@/types/orders";
+import {
+  DollarSign,
+  Loader2,
+  Package,
+  ShoppingCart,
+  TrendingUp,
+} from "lucide-react";
 
-const statusColors = {
+const statusColors: Record<OrderStatus, string> = {
   Pending: "text-yellow-600",
   Processing: "text-blue-600",
   Shipped: "text-purple-600",
@@ -10,6 +18,28 @@ const statusColors = {
 };
 
 export function SummaryCards() {
+  const { data: summary, isLoading, error } = useOrderSummary();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg bg-red-50 p-4 text-red-800">
+        Error loading summary: {error.message}
+      </div>
+    );
+  }
+
+  if (!summary) {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -19,7 +49,9 @@ export function SummaryCards() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2050</div>
+            <div className="text-2xl font-bold">
+              {summary.data.total_orders.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">All time orders</p>
           </CardContent>
         </Card>
@@ -30,7 +62,13 @@ export function SummaryCards() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$ 123456.78</div>
+            <div className="text-2xl font-bold">
+              $
+              {summary.data.total_revenue.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </div>
             <p className="text-xs text-muted-foreground">Total sales value</p>
           </CardContent>
         </Card>
@@ -41,7 +79,11 @@ export function SummaryCards() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1500</div>
+            <div className="text-2xl font-bold">
+              {summary.data.by_status
+                .find((s) => s.status === "Delivered")
+                ?.count.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
               Successfully completed
             </p>
@@ -54,7 +96,16 @@ export function SummaryCards() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">400</div>
+            <div className="text-2xl font-bold">
+              {["Pending", "Processing", "Shipped"]
+                .reduce((acc, status) => {
+                  const statusData = summary.data.by_status.find(
+                    (s) => s.status === status
+                  );
+                  return acc + (statusData ? statusData.count : 0);
+                }, 0)
+                .toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
               Pending + Processing + Shipped
             </p>
@@ -68,13 +119,7 @@ export function SummaryCards() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
-            {[
-              { status: "Pending", count: 100, total_amount: 5000 },
-              { status: "Processing", count: 150, total_amount: 7500 },
-              { status: "Shipped", count: 150, total_amount: 9000 },
-              { status: "Delivered", count: 1500, total_amount: 120000 },
-              { status: "Cancelled", count: 150, total_amount: 3000 },
-            ].map((status) => (
+            {summary.data.by_status.map((status) => (
               <div
                 key={status.status}
                 className="flex flex-col space-y-1 border-l-4 pl-3"
@@ -91,7 +136,7 @@ export function SummaryCards() {
                 </span>
                 <span className="text-xs text-gray-500">
                   $
-                  {status.total_amount.toLocaleString(undefined, {
+                  {status.total_revenue.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}

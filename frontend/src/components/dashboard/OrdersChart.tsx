@@ -1,4 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useOrderSummary } from "@/hooks/use-orders";
+import { Loader2 } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -9,14 +11,34 @@ import {
   YAxis,
 } from "recharts";
 
-const chartData = Array.from({ length: 30 }, (_, i) => ({
-  date: `${(i + 1).toString().padStart(2, "0")}/${(new Date().getMonth() + 1)
-    .toString()
-    .padStart(2, "0")}`,
-  orders: Math.floor(Math.random() * 100) + 20,
-}));
-
 export function OrdersChart() {
+  const { data: summary, isLoading } = useOrderSummary();
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Orders Trend (Monthly)</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!summary) {
+    return null;
+  }
+
+  const chartData = summary.data.last_30_days.map((item) => ({
+    date: new Date(item.date).toLocaleDateString(undefined, {
+      month: "2-digit",
+      day: "2-digit",
+    }),
+    orders: item.count,
+  }));
+
   return (
     <Card>
       <CardHeader>

@@ -15,9 +15,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, ChevronRight, Edit } from "lucide-react";
+import { useOrders } from "@/hooks/use-orders";
+import { OrderPriority, OrderStatus } from "@/types/orders";
+import { ChevronLeft, ChevronRight, Edit, Loader2 } from "lucide-react";
+import { useState } from "react";
 
-const statusColors = {
+const statusColors: Record<OrderStatus, string> = {
   Pending: "bg-yellow-100 text-yellow-800",
   Processing: "bg-blue-100 text-blue-800",
   Shipped: "bg-purple-100 text-purple-800",
@@ -25,25 +28,51 @@ const statusColors = {
   Cancelled: "bg-red-100 text-red-800",
 };
 
-const priorityColors = {
+const priorityColors: Record<OrderPriority, string> = {
   Low: "bg-gray-100 text-gray-800",
   Medium: "bg-orange-100 text-orange-800",
   High: "bg-red-100 text-red-800",
 };
 
-const orders = [
-  {
-    airtable_id: "rec1",
-    order_id: "ORD-1001",
-    customer: "John Doe",
-    status: "Pending",
-    priority: "High",
-    order_total: 250.75,
-    created_at: "2024-06-01T10:15:00Z",
-  },
-];
-
 export function OrdersTable() {
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
+  const { data, isLoading, error } = useOrders({ page, page_size: pageSize });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Orders</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Orders</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-lg bg-red-50 p-4 text-red-800">
+            Error loading orders: {error.message}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const { data: orders, meta } = data;
+
   return (
     <>
       <Card>
@@ -87,11 +116,7 @@ export function OrdersTable() {
                     <TableCell>
                       <Badge
                         variant="secondary"
-                        className={
-                          statusColors[
-                            order.status as keyof typeof statusColors
-                          ]
-                        }
+                        className={statusColors[order.status]}
                       >
                         {order.status}
                       </Badge>
@@ -99,11 +124,7 @@ export function OrdersTable() {
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className={
-                          priorityColors[
-                            order.priority as keyof typeof priorityColors
-                          ]
-                        }
+                        className={priorityColors[order.priority]}
                       >
                         {order.priority}
                       </Badge>
@@ -132,13 +153,15 @@ export function OrdersTable() {
           </div>
 
           <div className="mt-4 flex items-center justify-between flex-wrap gap-2">
-            <div className="text-sm text-gray-500">Page 1 of 21</div>
+            <div className="text-sm text-gray-500">
+              Page {meta.page} of {meta.total_pages}
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => console.log("Previous page")}
-                disabled={true}
+                onClick={() => setPage((page) => Math.max(page - 1, 1))}
+                disabled={meta.page === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
                 Previous
@@ -146,7 +169,8 @@ export function OrdersTable() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => console.log("Next page")}
+                onClick={() => setPage((page) => page + 1)}
+                disabled={meta.page === meta.total_pages}
               >
                 Next
                 <ChevronRight className="h-4 w-4" />
