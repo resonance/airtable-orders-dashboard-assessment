@@ -51,7 +51,7 @@ class OrderService:
             }
         )
 
-        await cache_service.set_cached_data(cached_key, orders.model_dump())
+        await cache_service.set_cached_data(cached_key, orders.model_dump(mode='json'))
 
         return orders
 
@@ -69,7 +69,7 @@ class OrderService:
         order = await airtable_service.get_order_by_id(order_id)
 
         if order:
-            await cache_service.set_cached_data(cached_key, OrderResponse(data=order).model_dump())
+            await cache_service.set_cached_data(cached_key, OrderResponse(data=order).model_dump(mode='json'))
         return OrderResponse(data=order) if order else None
 
     async def update_order(
@@ -134,7 +134,7 @@ class OrderService:
             )
         )
 
-        await cache_service.set_cached_data(cached_key, summary.model_dump())
+        await cache_service.set_cached_data(cached_key, summary.model_dump(mode='json'))
 
         return summary
 

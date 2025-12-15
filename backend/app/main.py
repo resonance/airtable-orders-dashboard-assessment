@@ -49,6 +49,7 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return { "status": "ok", "redis": "connected" if cache_service.client else "disconnected" }
+    redis_status = "connected" if await cache_service.is_connected() else "disconnected"
+    return { "status": "ok", "redis": redis_status }
 
 app.include_router(orders.router, prefix="/api", tags=["orders"])

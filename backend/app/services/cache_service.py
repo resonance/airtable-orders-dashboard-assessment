@@ -1,4 +1,4 @@
-import redis
+import redis.asyncio as redis
 from typing import Optional, Any
 from app.config import settings
 import json
@@ -33,7 +33,7 @@ class CacheService:
         """Connect to the Redis server."""
         try:
             if not self.client:
-                self.client = redis.from_url(settings.redis_url)
+                self.client = await redis.from_url(settings.redis_url)
         except Exception as e:
             print(f"Failed to initialize Redis client: {e}")
             self.client = None
@@ -43,6 +43,16 @@ class CacheService:
         if self.client:
             await self.client.close()
             self.client = None
+
+    async def is_connected(self) -> bool:
+        """Check if Redis is actually connected and responsive."""
+        if not self.client:
+            return False
+        try:
+            await self.client.ping()
+            return True
+        except Exception:
+            return False
 
     async def get(self, key: str) -> Any | None:
         """Get a value from the cache."""
