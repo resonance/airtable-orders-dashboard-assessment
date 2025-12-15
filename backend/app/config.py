@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     api_description: str = "API for managing and analyzing orders from Airtable."
     cors_origins: Union[str, list[str]] = "*"
 
+    # Rate limiting settings
+    rate_limit_orders_list: str = "100/minute"
+    rate_limit_orders_summary: str = "60/minute"
+    rate_limit_orders_get: str = "100/minute"
+    rate_limit_orders_update: str = "30/minute"
+    rate_limit_orders_sync: str = "5/minute"
+
     class Config:
         env_file = ".env"
 

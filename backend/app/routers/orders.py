@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from app.config import settings
 from app.schemas.order import (
     OrderUpdateResponse,
     OrdersListResponse,
@@ -9,13 +12,17 @@ from app.schemas.order import (
 )
 from app.services.order_service import order_service
 
+limiter = Limiter(key_func=get_remote_address)
+
 router = APIRouter(
     prefix="/orders",
     tags=["orders"],
 )
 
 @router.get("/", response_model=OrdersListResponse)
+@limiter.limit(settings.rate_limit_orders_list)
 async def list_orders(
+    request: Request,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Number of items per page"),
 ):
@@ -29,7 +36,8 @@ async def list_orders(
         )
 
 @router.get("/summary", response_model=OrdersSummaryResponse)
-async def get_orders_summary():
+@limiter.limit(settings.rate_limit_orders_summary)
+async def get_orders_summary(request: Request):
     """Endpoint to get orders summary."""
     try:
         return await order_service.get_orders_summary()
@@ -40,7 +48,8 @@ async def get_orders_summary():
         )
 
 @router.post("/sync", response_model=SyncResponse)
-async def sync_orders():
+@limiter.limit(settings.rate_limit_orders_sync)
+async def sync_orders(request: Request):
     """Endpoint to sync orders from Airtable."""
     try:
         return await order_service.sync_orders()
@@ -52,7 +61,8 @@ async def sync_orders():
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
-async def get_order(order_id: str):
+@limiter.limit(settings.rate_limit_orders_get)
+async def get_order(request: Request, order_id: str):
     """Endpoint to get a single order by ID."""
     try:
         order = await order_service.get_order(order_id)
@@ -69,7 +79,9 @@ async def get_order(order_id: str):
         )
 
 @router.patch("/{order_id}", response_model=OrderUpdateResponse)
+@limiter.limit(settings.rate_limit_orders_update)
 async def update_order(
+    request: Request,
     order_id: str,
     data: OrderUpdate,
 ):
