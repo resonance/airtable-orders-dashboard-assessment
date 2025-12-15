@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import orders
+from app.config import settings
 
 async def lifespan(app: FastAPI):
     """Lifespan context manager for application startup and shutdown."""
@@ -12,14 +13,15 @@ async def lifespan(app: FastAPI):
     print("Shutting down...")
 
 app = FastAPI(
-    title="My FastAPI Application",
-    version="1.0.0",
+    title=settings.api_title,
+    version=settings.api_version,
+    description=settings.api_description,
     lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
