@@ -5,11 +5,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import orders
 from app.config import settings
+from app.services.cache_service import cache_service
 
 async def lifespan(app: FastAPI):
     """Lifespan context manager for application startup and shutdown."""
     print("Starting up...")
+    try:
+        await cache_service.connect()
+        print("Connected to redis.")
+    except Exception as e:
+        print(f"Failed to connect to redis: {str(e)}. Continuing without cache.")
     yield
+    try:
+        await cache_service.disconnect()
+        print("Disconnected from redis.")
+    except Exception as e:
+            pass
     print("Shutting down...")
 
 app = FastAPI(
@@ -30,6 +41,6 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return { "status": "ok" }
+    return { "status": "ok", "redis": "connected" if cache_service.client else "disconnected" }
 
 app.include_router(orders.router, prefix="/api", tags=["orders"])

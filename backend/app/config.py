@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     airtable_api_key: str
     airtable_base_id: str
     airtable_table_id: str
+    redis_url: str = "redis://localhost:6379"
+    cache_ttl: int = 300
     api_title: str = "Airtable Orders Dashboard API"
     api_version: str = "1.0.0"
     api_description: str = "API for managing and analyzing orders from Airtable."

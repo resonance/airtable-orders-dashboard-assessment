@@ -18,6 +18,7 @@ from app.services.airtable_service import airtable_service
 from collections import defaultdict
 from typing import Dict, List
 from datetime import datetime, timedelta, timezone
+from app.services.cache_service import cache_service, CacheKeys
 
 class OrderService:
     """Service for managing orders."""
@@ -28,6 +29,11 @@ class OrderService:
         page_size: int = 100,
     ) -> OrdersListResponse:
         """Retrieve the list of orders with pagination."""
+        cached_key = CacheKeys.orders_list(page=page, page_size=page_size)
+        cached_data = await cache_service.get_cached_data(cached_key)
+        if cached_data:
+            return cached_data
+
         orders, total = await airtable_service.get_orders_paginated(
             page=page,
             page_size=page_size
@@ -35,7 +41,7 @@ class OrderService:
 
         total_pages = (total + page_size - 1)
 
-        return OrdersListResponse(
+        orders = OrdersListResponse(
             data=orders,
             meta={
                 "page": page,
@@ -45,9 +51,25 @@ class OrderService:
             }
         )
 
+        await cache_service.set_cached_data(cached_key, orders.model_dump())
+
+        return orders
+
+
     async def get_order(self, order_id: str) -> OrderResponse:
         """Retrieve a single order by its ID."""
+        if not order_id:
+            return None
+
+        cached_key = CacheKeys.order_detail(order_id=order_id)
+        cached_data = await cache_service.get_cached_data(cached_key)
+        if cached_data:
+            return cached_data
+
         order = await airtable_service.get_order_by_id(order_id)
+
+        if order:
+            await cache_service.set_cached_data(cached_key, OrderResponse(data=order).model_dump())
         return OrderResponse(data=order) if order else None
 
     async def update_order(
@@ -68,10 +90,19 @@ class OrderService:
             priority=priority,
         )
 
+        await cache_service.delete(CacheKeys.order_detail(order_id=order_id))
+        await cache_service.delete(CacheKeys.orders_summary())
+        await cache_service.delete_pattern("orders:list:*")
+
         return OrderUpdateResponse(data=updated_order)
 
     async def get_orders_summary(self):
         """Get summary statistics for orders in the last 30 days."""
+        cached_key = CacheKeys.orders_summary()
+        cached_data = await cache_service.get_cached_data(cached_key)
+        if cached_data:
+            return cached_data
+
         orders = await airtable_service.get_orders_by_date_range(days=30)
 
         total_orders = len(orders)
@@ -94,7 +125,7 @@ class OrderService:
 
         last_30_days = await self._compute_daily_summary(orders, days=30)
 
-        return OrdersSummaryResponse(
+        summary = OrdersSummaryResponse(
             data=AnalyticsData(
                 total_orders=total_orders,
                 total_revenue=total_revenue,
@@ -103,6 +134,9 @@ class OrderService:
             )
         )
 
+        await cache_service.set_cached_data(cached_key, summary.model_dump())
+
+        return summary
 
     async def _compute_daily_summary(self, orders: List[Order], days: int = 30) -> List[DailySummary]:
         """Compute daily summary of orders for the last given number of days."""
@@ -130,6 +164,11 @@ class OrderService:
 
     async def sync_orders(self) -> SyncResponse:
         """Sync orders from Airtable and return sync summary."""
+        await cache_service.delete(CacheKeys.orders_summary())
+        await cache_service.delete(CacheKeys.orders_all())
+        await cache_service.delete_pattern("orders:list:*")
+        await cache_service.delete_pattern("orders:detail:*")
+
         records_synced = await airtable_service.get_all_orders()
         records_count = len(records_synced)
 
