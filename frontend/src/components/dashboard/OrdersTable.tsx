@@ -93,10 +93,10 @@ export function OrdersTable() {
                   </TableRow>
                 )}
 
-                {isPending && !isLoading && !isFetching && (
+                {(isPending || isLoading || isFetching) && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-4">
-                      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                      <Loader2 className="h-8 w-8 mx-auto animate-spin text-gray-400" />
                     </TableCell>
                   </TableRow>
                 )}
