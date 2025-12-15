@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     rate_limit_orders_update: str = "30/minute"
     rate_limit_orders_sync: str = "5/minute"
 
+    # Airtable concurrency control
+    airtable_max_concurrent_requests: int = 10
+
     class Config:
         env_file = ".env"
 
