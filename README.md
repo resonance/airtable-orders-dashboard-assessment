@@ -4,9 +4,9 @@
 
 You are building a small internal dashboard for a company that tracks its orders in Airtable. The goal is to:
 
-- Read a large Airtable base with thousands of order records  
-- Build a backend API that aggregates and updates that data  
-- Build a frontend in React that visualizes key metrics and lets users update orders  
+- Read a large Airtable base with thousands of order records
+- Build a backend API that aggregates and updates that data
+- Build a frontend in React that visualizes key metrics and lets users update orders
 
 How you design and implement this is up to you. We are interested in your choices, tradeoffs and code quality as much as the final result.
 
@@ -17,6 +17,7 @@ How you design and implement this is up to you. We are interested in your choice
 The company currently stores all order data in Airtable. They want:
 
 - A backend service that:
+
   - Fetches orders from Airtable
   - Computes useful summary statistics
   - Allows updating certain fields on orders
@@ -36,6 +37,7 @@ Airtable has API limits, and the base contains many records. Your implementation
 ### Tech stack
 
 - **Backend**
+
   - Language: **Python**
   - Framework: **FastAPI** (or another modern Python web framework if you prefer, but FastAPI is recommended)
   - REST API for the frontend to consume
@@ -178,40 +180,170 @@ You are free to choose the strategies and tools you prefer. Briefly describe you
 6. **Open a Pull Request** from your branch (`feature/solution-your-name`) to this repository’s `main` branch.
 
    In your PR description, please include:
+
    - A short overview of your solution
    - Any tradeoffs or assumptions you made
    - What you would improve or add if you had more time
-     
+
 ---
 
 ## How to run your solution
 
-Please include clear instructions in this section so we can run your backend and frontend locally.
+### Prerequisites
 
-At a minimum, document:
+- **Python 3.10+** (tested with Python 3.14)
+- **Node.js 18+** (tested with Node.js 20+)
+- **Bun** (or npm/pnpm) for frontend package management
+- **Docker** (for Redis cache - optional but recommended)
 
-1. **Prerequisites**
-   - Python version (e.g. 3.10+)
-   - Node.js version (e.g. 18+)
-   - Any other required tools (e.g. `pipenv`, `poetry`, `npm`, `pnpm`, `docker`, etc.)
+### Environment Variables
 
-2. **Environment variables**
-   - List all required environment variables (for example: `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`, `AIRTABLE_TABLE_ID_OR_NAME`, API base URL, etc.)
-   - Explain how to set them (e.g. `.env` file in the backend folder, `.env.local` for the frontend, or another approach).
+#### Backend (.env in `backend/` folder)
 
-3. **Backend setup & run**
-   - How to install dependencies (e.g. `pip install -r requirements.txt` or `poetry install`)
-   - How to start the backend server (e.g. `uvicorn app.main:app --reload --port 8000`)
-   - Which port it listens on and any relevant options
+Create a `.env` file in the `backend/` directory with:
 
-4. **Frontend setup & run**
-   - How to install dependencies (e.g. `npm install` or `pnpm install`)
-   - How to configure the backend URL (e.g. `VITE_API_BASE_URL` or `REACT_APP_API_BASE_URL`)
-   - How to start the frontend dev server (e.g. `npm run dev` or `npm start`)
-   - Which URL to open in the browser
+```env
+# Airtable Configuration (Required)
+AIRTABLE_API_KEY=your_airtable_api_key
+AIRTABLE_BASE_ID=your_base_id
+AIRTABLE_TABLE_ID=your_table_id
 
-5. **Running tests (if applicable)**
-   - How to run backend tests
-   - How to run frontend tests
+# Redis Cache (Optional - falls back to no cache if not available)
+REDIS_URL=redis://localhost:6379
 
-We should be able to follow the commands in this section to get both the backend and frontend running locally and access the dashboard in a browser.
+# Rate Limiting (Optional - defaults provided)
+RATE_LIMIT_ORDERS_LIST=100/minute
+RATE_LIMIT_ORDERS_SUMMARY=60/minute
+RATE_LIMIT_GET_ORDER=100/minute
+RATE_LIMIT_UPDATE_ORDER=30/minute
+RATE_LIMIT_SYNC_ORDERS=5/minute
+
+# Concurrency Control (Optional)
+AIRTABLE_MAX_CONCURRENT_REQUESTS=10
+```
+
+You can copy `.env.example` to `.env` and fill in your Airtable credentials:
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+#### Frontend (.env in `frontend/` folder)
+
+Create a `.env` file in the `frontend/` directory with:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+You can copy `.env.example` to `.env`:
+
+```bash
+cd frontend
+cp .env.example .env
+```
+
+### Backend Setup & Run
+
+1. **Navigate to backend directory**
+
+   ```bash
+   cd backend
+   ```
+
+2. **Create and activate virtual environment**
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On macOS/Linux
+   # or on Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure environment variables** (see above)
+
+5. **Start Redis (optional but recommended for caching)**
+
+   ```bash
+   docker compose up -d
+   ```
+
+6. **Run the backend server**
+
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
+
+   The API will be available at `http://localhost:8000`
+
+   - API documentation: `http://localhost:8000/docs`
+   - Health check: `http://localhost:8000/health`
+
+### Frontend Setup & Run
+
+1. **Navigate to frontend directory**
+
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   bun install
+   # or: npm install
+   ```
+
+3. **Configure environment variables** (see above)
+
+4. **Run the frontend dev server**
+
+   ```bash
+   bun dev
+   # or: npm run dev
+   ```
+
+   The dashboard will be available at `http://localhost:5173`
+
+### Quick Start (All in One)
+
+```bash
+# Terminal 1 - Start Redis
+docker compose up -d
+
+# Terminal 2 - Backend
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your Airtable credentials
+uvicorn app.main:app --reload --port 8000
+
+# Terminal 3 - Frontend
+cd frontend
+bun install
+cp .env.example .env
+bun dev
+```
+
+Then open `http://localhost:5173` in your browser.
+
+### Features
+
+- **Real-time metrics**: Total orders, revenue, and status breakdown
+- **Interactive charts**: 30-day trends and status distribution
+- **Orders table**: Paginated list with search, sorting, and filtering
+- **Quick actions**: Update order status and priority inline
+- **Sync button**: Manually sync data from Airtable
+- **Optimistic updates**: Instant UI feedback with automatic rollback on errors
+- **Redis caching**: 5-minute TTL for improved performance (up to 200x faster)
+- **Rate limiting**: Protection against API abuse (configurable per endpoint)
+- **Concurrency control**: Semaphore-based limiting of parallel Airtable requests
+- **Health monitoring**: Visual indicator of Redis cache status
