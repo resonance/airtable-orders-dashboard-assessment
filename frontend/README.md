@@ -1,73 +1,147 @@
-# React + TypeScript + Vite
+# Frontend - Orders Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript frontend for the Airtable Orders Dashboard.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 18** - JS Framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **Tailwind CSS v4** - Styling (modern @import syntax)
+- **shadcn/ui** - UI component library
+- **TanStack Query (React Query)** - Server state management
+- **Recharts** - Data visualization
+- **Lucide React** - Icon library
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **Install dependencies**
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+bun install
+# or: npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. **Configure environment variables**
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create a `.env` file in the `frontend/` directory:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_API_BASE_URL=http://localhost:8000
 ```
+
+You can copy `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+## Run
+
+**Development server:**
+
+```bash
+bun dev
+# or: npm run dev
+```
+
+The application will be available at `http://localhost:5173`
+
+**Build for production:**
+
+```bash
+bun run build
+# or: npm run build
+```
+
+**Preview production build:**
+
+```bash
+bun run preview
+# or: npm run preview
+```
+
+## Features
+
+### Dashboard Overview
+
+- **Real-time metrics**: Total orders, revenue, and status breakdown
+- **Interactive charts**:
+  - 30-day order trends (line chart)
+  - Status distribution (pie chart)
+- **Health monitoring**: Visual indicator of backend cache status
+
+### Orders Management
+
+- **Paginated table**: Efficient handling of large datasets
+- **Search**: Filter orders by order ID or customer name
+- **Sorting**: Click column headers to sort
+- **Status filtering**: Quick filter by order status
+- **Inline editing**: Update order status and priority directly from the table
+- **Optimistic updates**: Instant UI feedback with automatic rollback on errors
+
+### Performance Optimizations
+
+- **React Query caching**: Automatic background refetching and cache management
+- **Optimistic mutations**: Instant UI updates before server confirmation
+- **Debounced search**: Reduces unnecessary API calls
+- **Pagination**: Only loads visible data
+
+### User Experience
+
+- **Loading states**: Skeleton loaders for better perceived performance
+- **Error handling**: User-friendly error messages with retry options
+- **Toast notifications**: Non-intrusive feedback for actions
+- **Responsive design**: Works on desktop and tablet devices
+- **Keyboard navigation**: Accessible interactions
+
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── dashboard/       # Dashboard-specific components
+│   │   │   ├── MetricCard.tsx
+│   │   │   ├── OrdersChart.tsx
+│   │   │   ├── OrdersTable.tsx
+│   │   │   ├── StatusChart.tsx
+│   │   │   └── SyncButton.tsx
+│   │   └── ui/              # shadcn/ui components
+│   ├── hooks/
+│   │   └── useOrders.ts     # React Query hooks for orders
+│   ├── lib/
+│   │   ├── api.ts           # API client configuration
+│   │   └── utils.ts         # Utility functions
+│   ├── types/
+│   │   └── order.ts         # TypeScript type definitions
+│   ├── App.tsx              # Main application component
+│   └── main.tsx             # Application entry point
+├── public/                  # Static assets
+└── ...config files
+```
+
+## API Integration
+
+The frontend communicates with the backend API through a centralized API client (`src/lib/api.ts`). All endpoints are typed with TypeScript for type safety.
+
+**Endpoints used:**
+
+- `GET /api/orders` - List orders (paginated)
+- `GET /api/orders/summary` - Analytics summary
+- `GET /api/orders/{order_id}` - Get single order
+- `PATCH /api/orders/{order_id}` - Update order
+- `POST /api/orders/sync` - Sync from Airtable
+- `GET /health` - Backend health check
+
+## State Management
+
+- **React Query** handles all server state (fetching, caching, synchronization)
+- **React hooks** for local UI state (search, filters, pagination)
+- **Query invalidation** ensures data consistency after mutations
+
+## Styling
+
+This project uses **Tailwind CSS v4** with the modern `@import` syntax. Component styles use Tailwind utility classes and CSS variables for theming.
+
+**Theme customization** is available in `src/app.css` using CSS variables for colors, spacing, and other design tokens.
