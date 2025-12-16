@@ -1,7 +1,17 @@
+# Environment variables
+.env
+.env.local
+!.env.example
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
+
+# Virtual environment
+venv/
+.venv/
+env/
 
 # C extensions
 *.so
