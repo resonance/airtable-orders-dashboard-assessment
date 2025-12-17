@@ -1,217 +1,222 @@
-# Airtable Orders Dashboard Assignment
+# 📦 Airtable Orders Sync API
 
-## Overview
-
-You are building a small internal dashboard for a company that tracks its orders in Airtable. The goal is to:
-
-- Read a large Airtable base with thousands of order records  
-- Build a backend API that aggregates and updates that data  
-- Build a frontend in React that visualizes key metrics and lets users update orders  
-
-How you design and implement this is up to you. We are interested in your choices, tradeoffs and code quality as much as the final result.
+Backend construido con **FastAPI**, **PostgreSQL** y **Airtable API** para sincronizar, almacenar y administrar órdenes localmente, con soporte para paginación, actualización parcial y resúmenes estadísticos para dashboards.
 
 ---
 
-## Scenario
+##  Stack Tecnológico
 
-The company currently stores all order data in Airtable. They want:
-
-- A backend service that:
-  - Fetches orders from Airtable
-  - Computes useful summary statistics
-  - Allows updating certain fields on orders
-
-- A frontend dashboard that:
-  - Shows key metrics and charts
-  - Lists orders in a table
-  - Lets internal users update order status/priority
-  - Can trigger a "sync" with Airtable
-
-Airtable has API limits, and the base contains many records. Your implementation should take this into account.
+- **Python 3.10+**
+- **FastAPI**
+- **SQLAlchemy**
+- **Alembic (migraciones)**
+- **PostgreSQL**
+- **psycopg2-binary**
+- **APScheduler**
+- **Airtable REST API**
+- **Pydantic v2**
+- **Uvicorn**
 
 ---
 
-## Requirements
-
-### Tech stack
-
-- **Backend**
-  - Language: **Python**
-  - Framework: **FastAPI** (or another modern Python web framework if you prefer, but FastAPI is recommended)
-  - REST API for the frontend to consume
-  - Integration with Airtable API
-
-- **Frontend**
-  - **React** (Vite, CRA, Next.js in SPA mode, etc. are all acceptable)
-  - Talks **only** to your backend, never directly to Airtable
-
-You are free to choose libraries for HTTP requests, charting, state management and testing.
-
----
-
-## Data model (Airtable)
-
-We provide an Airtable base with a table called `Orders` containing thousands of records.
-
-Fields:
-
-- `Order ID` (string, unique)
-- `Customer` (string)
-- `Status` (single select: `Pending`, `Processing`, `Shipped`, `Delivered`, `Cancelled`)
-- `Order Total` (number)
-- `Created At` (datetime)
-- `Updated At` (datetime)
-- `Priority` (single select: `Low`, `Medium`, `High`)
-
-Treat Airtable as the source of truth.
-
-You will receive:
-
-- `AIRTABLE_API_KEY`
-- `AIRTABLE_BASE_ID`
-- `AIRTABLE_TABLE_ID_OR_NAME`
-
----
-
-## Backend requirements
-
-Implement a backend with at least the following functionality. You can add more endpoints if you find it useful.
-
-### 1. Order summary
-
-**Endpoint:** `GET /api/orders/summary`
-
-Returns aggregated statistics such as:
-
-- Count of orders by `Status`
-- Sum of `Order Total` by `Status`
-- Count of orders per day for the last 30 days
-
-The response shape is up to you, but it should be easy for the frontend to consume.
-
-> Note: Airtable has API limits, and the base contains many records. You should assume this dashboard will be used by hundreds of internal users, often at the same time, so your implementation needs to behave reasonably under concurrent usage and repeated requests.
-
----
-
-### 2. Sync with Airtable
-
-**Endpoint:** `POST /api/orders/sync`
-
-Responsibilities:
-
-- Fetch all orders from Airtable, handling pagination correctly
-- Optionally take advantage of any fields that help you avoid re-reading everything if you choose to do so
-- Recompute summary statistics
-- Return the same summary data as `/api/orders/summary`
-
-If something goes wrong (Airtable issues, etc.), the endpoint should return a useful error response and log enough information to debug.
-
----
-
-### 3. Update an order
-
-**Endpoint:** `PATCH /api/orders/{order_id}`
-
-Responsibilities:
-
-- Update the `Status` and/or `Priority` of a specific order in Airtable
-- Ensure the change is reflected by subsequent calls to your summary and list endpoints
-
-You decide how to handle consistency with any local data or summaries.
-
----
-
-### 4. Order listing (for the table)
-
-You will need an endpoint to support an orders table in the frontend. For example:
-
-**Endpoint:** `GET /api/orders`
-
-- Returns a list of orders with the main fields needed for the UI
-- Should support basic pagination (e.g. `page`, `pageSize` query params or similar)
-
-The exact shape of this endpoint is up to you.
-
----
-
-### Airtable and performance considerations
-
-Assume this dashboard will be used by hundreds of internal users, often at the same time.
-
-The Airtable base is large and Airtable enforces API limits. Hitting those limits in production would be a problem, so part of this assignment is deciding how you want to handle that. Think about things like:
-
-- How your design behaves under repeated and concurrent requests
-- How to avoid unnecessary calls to Airtable
-- How to deal with rate limiting or temporary errors from Airtable
-
-You are free to choose the strategies and tools you prefer. Briefly describe your approach in `ARCHITECTURE.md`.
-
----
-
-## How to submit
-
-1. **Fork this repository** to your own GitHub account.
-
-2. **Clone your fork** locally:
-
-   ```bash
-   git clone https://github.com/your-username/airtable-orders-dashboard-assignment.git
-   cd airtable-orders-dashboard-assignment
-   ```
-
-3. **Create a branch** for your solution:
-
-   ```bash
-   git checkout -b feature/solution-your-name
-   ```
-
-4. Implement your solution in the `backend` and `frontend` folders.
-
-5. **Commit and push** your changes to your fork:
-
-   ```bash
-   git add .
-   git commit -m "Add solution for Airtable orders dashboard"
-   git push origin feature/solution-your-name
-   ```
-
-6. **Open a Pull Request** from your branch (`feature/solution-your-name`) to this repository’s `main` branch.
-
-   In your PR description, please include:
-   - A short overview of your solution
-   - Any tradeoffs or assumptions you made
-   - What you would improve or add if you had more time
-     
----
-
-## How to run your solution
-
-Please include clear instructions in this section so we can run your backend and frontend locally.
-
-At a minimum, document:
-
-1. **Prerequisites**
-   - Python version (e.g. 3.10+)
-   - Node.js version (e.g. 18+)
-   - Any other required tools (e.g. `pipenv`, `poetry`, `npm`, `pnpm`, `docker`, etc.)
-
-2. **Environment variables**
-   - List all required environment variables (for example: `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`, `AIRTABLE_TABLE_ID_OR_NAME`, API base URL, etc.)
-   - Explain how to set them (e.g. `.env` file in the backend folder, `.env.local` for the frontend, or another approach).
-
-3. **Backend setup & run**
-   - How to install dependencies (e.g. `pip install -r requirements.txt` or `poetry install`)
-   - How to start the backend server (e.g. `uvicorn app.main:app --reload --port 8000`)
-   - Which port it listens on and any relevant options
-
-4. **Frontend setup & run**
-   - How to install dependencies (e.g. `npm install` or `pnpm install`)
-   - How to configure the backend URL (e.g. `VITE_API_BASE_URL` or `REACT_APP_API_BASE_URL`)
-   - How to start the frontend dev server (e.g. `npm run dev` or `npm start`)
-   - Which URL to open in the browser
-
-5. **Running tests (if applicable)**
-   - How to run backend tests
-   - How to run frontend tests
-
-We should be able to follow the commands in this section to get both the backend and frontend running locally and access the dashboard in a browser.
+## Requisitos del Sistema
+
+Asegúrate de tener instalado:
+
+```bash
+python --version     # >= 3.10
+pip --version
+psql --version
+
+Estructura del Proyecto
+pgsql
+Copy code
+backend_api/
+│
+├── app/
+│   ├── config.py
+│   ├── database.py
+│   ├── models/
+│   │   └── order.py
+│   ├── schemas/
+│   │   └── order_schema.py
+│   ├── services/
+│   │   ├── airtable_service.py
+│   │   └── sync_service.py
+│   ├── controllers/
+│   │   └── order_controller.py
+│   └── routes/
+│       └── order_routes.py
+│
+├── alembic/
+│   ├── versions/
+│   └── env.py
+│
+├── main.py
+├── requirements.txt
+├── .env
+└── README.md
+
+Dependencias (requirements.txt)
+txt
+fastApi
+uvicorn
+requests
+python-dotenv
+SQLAlchemy
+Psycopg2-binary
+alembic
+apscheduler
+pydantic
+apscheduler
+python-dateutil
+
+⚙️ Variables de Entorno (.env)
+env
+Copy code
+DATABASE_URL=postgresql://master:password@localhost:5432/resonance
+
+# tener en cuenta que debe crear la base de datos por comandos y debe crear el user master y su password
+
+AIRTABLE_API_KEY=keyXXXXXXXXXXXX
+AIRTABLE_BASE_ID=appXXXXXXXXXXXX
+AIRTABLE_TABLE_ID=tblXXXXXXXXXXXX
+
+SYNC_INTERVAL_MINUTES=5
+DEBUG=true
+🗄️ Base de Datos (PostgreSQL)
+1️⃣ Crear usuario (si no existe)
+sql
+Copy code
+CREATE USER master WITH PASSWORD 'password';
+2️⃣ Crear base de datos
+sql
+Copy code
+CREATE DATABASE resonance OWNER master;
+3️⃣ Dar permisos
+sql
+Copy code
+GRANT ALL PRIVILEGES ON DATABASE resonance TO master;
+📦 Instalación del Backend
+1️⃣ Crear entorno virtual
+bash
+Copy code
+python -m venv venv
+source venv/bin/activate
+(Windows)
+
+bash
+Copy code
+venv\Scripts\activate
+2️⃣ Instalar dependencias
+bash
+Copy code
+pip install -r requirements.txt
+🧬 Migraciones (Alembic)
+1️⃣ Inicializar Alembic (una sola vez)
+bash
+Copy code
+alembic init alembic
+2️⃣ Configurar alembic.ini
+ini
+Copy code
+sqlalchemy.url = postgresql://master:password@localhost:5432/resonance
+3️⃣ Importar modelos en alembic/env.py
+python
+Copy code
+from app.database import Base
+from app.models.order import Order
+
+target_metadata = Base.metadata
+4️⃣ Crear migración
+bash
+Copy code
+alembic revision --autogenerate -m "create orders table"
+5️⃣ Ejecutar migración
+bash
+Copy code
+alembic upgrade head
+▶️ Ejecutar el Servidor
+bash
+Copy code
+uvicorn main:app --reload
+Servidor disponible en:
+
+cpp
+Copy code
+http://127.0.0.1:8000
+
+Documentación Automática
+FastAPI expone Swagger automáticamente:
+
+arduino
+Copy code
+http://127.0.0.1:8000/docs
+Endpoints Principales
+Listar órdenes (paginación + filtros)
+http
+
+Copy code
+GET /api/orders
+Query params:
+
+page
+page_size
+status
+priority
+customer
+start_date
+end_date
+
+Obtener orden por record_id
+http
+Copy code
+GET /api/orders/id/{record_id}
+Actualizar status y prioridad
+http
+Copy code
+PATCH /api/orders/{record_id}
+Body:
+
+json
+Copy code
+{
+  "status": "Sent",
+  "priority": "High"
+}
+
+Resumen de órdenes (charts)
+http
+Copy code
+GET /api/orders/summary
+Sincronización manual con Airtable
+http
+Copy code
+POST /api/orders/sync
+
+Sincronización Automática
+Se ejecuta al iniciar la aplicación
+
+Se ejecuta cada SYNC_INTERVAL_MINUTES
+
+Detecta cambios por updated_at
+
+Evita duplicados por record_id
+
+Pruebas con Postman
+Ejemplo:
+arduino
+Copy code
+http://127.0.0.1:8000/api/orders?page=1&page_size=10
+
+Estados y Prioridades
+Status válidos
+Pending
+Processing
+Sent
+Delivered
+Cancelled
+Priority válidas
+Low
+Medium
+High

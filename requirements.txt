@@ -1,0 +1,10 @@
+fastApi
+uvicorn
+requests
+python-dotenv
+SQLAlchemy
+Psycopg2-binary
+alembic
+apscheduler
+pydantic
+apscheduler
